@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAST CASH - Premium Telegram Mini App</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            padding: 12px;
+            padding-bottom: 80px;
+        }
+
+        /* Header UI */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            border: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #fbbf24;
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .balance-badge {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid #fbbf24;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Main Dashboard Cards */
+        .card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .balance-card {
+            text-align: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        .balance-title {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .balance-amount {
+            color: #fbbf24;
+            font-size: 34px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            border-top: 1px solid #334155;
+            padding-top: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-weight: bold;
+            color: #38bdf8;
+            font-size: 14px;
+        }
+
+        .stat-lbl {
+            color: #9ca3af;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        /* Form Controls */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #fbbf24;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-disabled {
+            background: #334155 !important;
+            color: #9ca3af !important;
+            cursor: not-allowed;
+        }
+
+        /* Views management */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Admin Section Styling */
+        .admin-section {
+            border: 1px dashed #fbbf24;
+            background: #111827;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .admin-nav button {
+            background: #1e293b;
+            font-size: 12px;
+            padding: 8px;
+        }
+
+        .admin-nav button.active {
+            background: #fbbf24;
+            color: #000;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0f172a;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #1e293b;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            color: #9ca3af;
+            font-size: 10px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .nav-item.active {
+            color: #fbbf24;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        /* Task & Request List UI */
+        .list-item {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #334155;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- হেডার -->
+    <div class="header">
+        <div class="user-info">
+            <div class="user-avatar" id="avatarLetter">F</div>
+            <div>
+                <strong id="userName">স্বাগতম, ইউজার!</strong><br>
+                <span style="font-size: 11px; color: #9ca3af;">অফিশিয়াল মিনি অ্যাপ</span>
+            </div>
+        </div>
+        <div class="balance-badge">
+            ৳ <span id="headerBalance">1.00</span>
+        </div>
+    </div>
+
+    <!-- TAB 1: হোম পেজ -->
+    <div id="tabHome" class="tab-content active">
+        <div class="card balance-card">
+            <div class="balance-title">বর্তমান মোট ব্যালেন্স</div>
+            <div class="balance-amount">৳ <span id="mainBalance">1.00</span></div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-val" id="todayAds">2/10</div>
+                    <div class="stat-lbl">আজকের অ্যাড</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="refCount">126 জন</div>
+                    <div class="stat-lbl">মোট রেফার</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="refEarn">৳ 1040008.00</div>
+                    <div class="stat-lbl">রেফার আয়</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4 style="color: #fbbf24; margin-bottom: 6px;">🎁 ডেইলি বোনাস</h4>
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 10px;">প্রতিদিন একবার ফ্রিতে রিওয়ার্ড বোনাস দাবি করুন!</p>
+            <button id="dailyBonusBtn" class="btn-disabled">✓ আজকের বোনাস নেওয়া শেষ</button>
+        </div>
+
+        <!-- অ্যাড কন্টেইনার (Monetag / Adsterra Integration) -->
+        <div class="card" style="text-align: center;">
+            <p style="font-size: 12px; color: #9ca3af; margin-bottom: 6px;">--- বিজ্ঞাপন ---</p>
+            <div id="monetizationAdBox">
+                <p style="font-size: 13px; color: #cbd5e1;">অ্যাড কোড এখানে লোড হবে</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: অ্যাড ওয়াচ -->
+    <div id="tabAds" class="tab-content">
+        <div class="card">
+            <h3 style="color: #fbbf24;">📢 ভিডিও ও ব্যানার অ্যাড</h3>
+            <p style="font-size: 13px; color: #9ca3af; margin-top: 5px;">বিজ্ঞাপন দেখে আয় করুন। প্রতি অ্যাডে পাবেন ৳ 0.50 TK।</p>
+            <button style="margin-top: 15px; background: #fbbf24; color: #000;" onclick="watchAd()">অ্যাড দেখুন</button>
+        </div>
+    </div>
+
+    <!-- TAB 3: টাস্ক লিস্ট -->
+    <div id="tabTasks" class="tab-content">
+        <div class="card">
+            <h3 style="color: #fbbf24; margin-bottom: 10px;">🎯 টেলিগ্রাম টাস্ক লিস্ট</h3>
+            <div id="taskList">
+                <div class="list-item">
+                    <div>
+                        <strong>অফিসিয়াল চ্যানেলে জয়েন করুন</strong><br>
+                        <span style="font-size: 11px; color: #4ade80;">+ ৳ 2.00</span>
+                    </div>
+                    <button style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="window.open('https://t.me/')">সম্পন্ন করুন</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: রেফার পেজ -->
+    <div id="tabRefer" class="tab-content">
+        <div class="card">
+            <h3 style="color: #fbbf24;">👥 আপনার রেফার লিংক</h3>
+            <p style="font-size: 12px; color: #9ca3af; margin: 8px 0;">প্রতিটি সফল রেফারে পাবেন ৳ 5.00 TK পর্যন্ত বোনাস!</p>
+            <input type="text" id="referLink" value="https://t.me/FAST_ASH77_Bot?start=5251898313" readonly>
+            <button onclick="copyReferLink()">লিংক কপি করুন</button>
+        </div>
+    </div>
+
+    <!-- TAB 5: উইথড্র পেজ -->
+    <div id="tabWithdraw" class="tab-content">
+        <div class="card">
+            <h3 style="color: #fbbf24;">💳 টাকা উত্তোলন (Withdrawal)</h3>
+            <p style="font-size: 12px; color: #9ca3af; margin-top: 4px;">সর্বনিম্ন উইথড্র: ৳ 50 TK (bKash, Nagad, Rocket)</p>
+
+            <select id="withdrawMethod">
+                <option value="bKash">bKash (বিকাশ)</option>
+                <option value="Nagad">Nagad (নগদ)</option>
+                <option value="Rocket">Rocket (রকেট)</option>
+            </select>
+
+            <input type="number" id="withdrawAmount" placeholder="টাকার পরিমাণ লিখুন (যেমন: 50)">
+            <input type="text" id="withdrawNumber" placeholder="আপনার মোবাইল নম্বর দিন">
+
+            <button onclick="submitWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
+        </div>
+    </div>
+
+    <!-- TAB 6: সাপোর্ট পেজ -->
+    <div id="tabSupport" class="tab-content">
+        <div class="card" style="text-align: center;">
+            <h3 style="color: #fbbf24;">🎧 হেল্প ও সাপোর্ট</h3>
+            <p style="font-size: 13px; color: #9ca3af; margin: 10px 0;">যে কোনো সমস্যায় আমাদের টেলিগ্রাম সাপোর্ট গ্রুপিং-এ যোগাযোগ করুন।</p>
+            <button style="background: #22c55e;" onclick="window.open('https://t.me/')">টেলিগ্রাম সাপোর্ট চ্যানেল</button>
+        </div>
+    </div>
+
+    <!-- অ্যাডমিন কন্ট্রোল প্যানেল (সুরক্ষিত) -->
+    <div class="card admin-section" id="adminPanel">
+        <h3 style="text-align: center; color: #fbbf24; margin-bottom: 10px;">⚙️ অ্যাডমিন কন্ট্রোল প্যানেল</h3>
+
+        <!-- পাসওয়ার্ড ইনপুট বক্স -->
+        <div id="adminLoginBox">
+            <input type="password" id="adminPass" placeholder="অ্যাডমিন পাসওয়ার্ড দিন (যেমন: 123456)">
+            <button onclick="loginAdmin()">লগইন করুন</button>
+        </div>
+
+        <!-- ফুল অ্যাডমিন ড্যাশবোর্ড (লগইন সফল হলে শো করবে) -->
+        <div id="adminControls" style="display: none;">
+            <div id="adminStatus" style="font-size: 12px; color: #4ade80; text-align: center; margin-bottom: 10px;">সফলভাবে অ্যাডমিন মোডে লগইন হয়েছে</div>
+
+            <div class="admin-nav">
+                <button id="navBtn1" class="active" onclick="switchAdminTab('tasks')">টাস্ক ম্যানেজমেন্ট</button>
+                <button id="navBtn2" onclick="switchAdminTab('withdraws')">উইথড্র রিকোয়েস্ট</button>
+            </div>
+
+            <!-- পেজ ১: নতুন টাস্ক যোগ -->
+            <div id="adminTabTasks">
+                <h4 style="color: #38bdf8;">নতুন টাস্ক যোগ করুন</h4>
+                <input type="text" id="newTaskTitle" placeholder="টাস্কের নাম লিখুন">
+                <input type="text" id="newTaskLink" placeholder="টেলিগ্রাম লিংক দিন">
+                <input type="number" id="newTaskReward" placeholder="পুরস্কারের পরিমাণ (TK)">
+                <button style="background: #8b5cf6;" onclick="addNewTask()">টাস্ক পাবলিশ করুন</button>
+            </div>
+
+            <!-- পেজ ২: উইথড্র রিকোয়েস্ট লিস্ট -->
+            <div id="adminTabWithdraws" style="display: none;">
+                <h4 style="color: #38bdf8; margin-bottom: 8px;">উইথড্র রিকোয়েস্টসমূহ</h4>
+                <div id="withdrawRequestsList">
+                    <p style="font-size: 12px; color: #9ca3af;">কোনো পেন্ডিং উইথড্র রিকোয়েস্ট নেই।</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- বটম নেভিগেশন বার -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('Home', this)">
+            <span class="nav-icon">🏠</span>
+            <span>হোম</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('Ads', this)">
+            <span class="nav-icon">📢</span>
+            <span>অ্যাড</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('Tasks', this)">
+            <span class="nav-icon">🎯</span>
+            <span>টাস্ক</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('Refer', this)">
+            <span class="nav-icon">👥</span>
+            <span>রেফার</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('Withdraw', this)">
+            <span class="nav-icon">💳</span>
+            <span>উইথড্র</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('Support', this)">
+            <span class="nav-icon">🎧</span>
+            <span>সাপোর্ট</span>
+        </div>
+    </div>
+
+    <script>
+        // --- Supabase Backend Setup Hub ---
+        const SUPABASE_URL = "YOUR_SUPABASE_URL";
+        const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+        // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- Tab Switching Logic ---
+        function switchTab(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            document.getElementById('tab' + tabName).classList.add('active');
+            if(el) el.classList.add('active');
+        }
+
+        // --- Admin Controls Logic ---
+        function loginAdmin() {
+            const inputPass = document.getElementById("adminPass").value;
+            const correctPass = "123456"; // আপনার সেট করা অ্যাডমিন পাসওয়ার্ড
+
+            if(inputPass === correctPass) {
+                document.getElementById("adminLoginBox").style.display = "none";
+                document.getElementById("adminControls").style.display = "block";
+                alert("অ্যাডমিন প্যানেলে স্বাগতম!");
+            } else {
+                alert("ভুল পাসওয়ার্ড! সঠিক পাসওয়ার্ড দিন (123456)");
+            }
+        }
+
+        function switchAdminTab(type) {
+            if(type === 'tasks') {
+                document.getElementById('adminTabTasks').style.display = 'block';
+                document.getElementById('adminTabWithdraws').style.display = 'none';
+                document.getElementById('navBtn1').classList.add('active');
+                document.getElementById('navBtn2').classList.remove('active');
+            } else {
+                document.getElementById('adminTabTasks').style.display = 'none';
+                document.getElementById('adminTabWithdraws').style.display = 'block';
+                document.getElementById('navBtn1').classList.remove('active');
+                document.getElementById('navBtn2').classList.add('active');
+            }
+        }
+
+        // --- Helper Actions ---
+        function copyReferLink() {
+            const copyText = document.getElementById("referLink");
+            copyText.select();
+            document.execCommand("copy");
+            alert("রেফার লিংক কপি করা হয়েছে!");
+        }
+
+        function watchAd() {
+            alert("বিজ্ঞাপন দেখা সম্পন্ন হয়েছে! আপনার ব্যালেন্স আপডেট করা হলো।");
+        }
+
+        function submitWithdraw() {
+            const amount = document.getElementById("withdrawAmount").value;
+            const number = document.getElementById("withdrawNumber").value;
+            const method = document.getElementById("withdrawMethod").value;
+
+            if(amount >= 50 && number) {
+                alert(`${method}-এ ${amount} টাকা উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে!`);
+                document.getElementById("withdrawAmount").value = "";
+                document.getElementById("withdrawNumber").value = "";
+            } else {
+                alert("দয়া করে সঠিক নম্বর এবং সর্বনিম্ন ৫০ টাকা সিলেক্ট করুন।");
+            }
+        }
+
+        function addNewTask() {
+            const title = document.getElementById("newTaskTitle").value;
+            if(title) {
+                alert("সফলভাবে নতুন টাস্ক যোগ করা হয়েছে!");
+                document.getElementById("newTaskTitle").value = "";
+                document.getElementById("newTaskLink").value = "";
+                document.getElementById("newTaskReward").value = "";
+            } else {
+                alert("দয়া করে সব ঘর পূরণ করুন।");
+            }
+        }
+    </script>
+</body>
+</html>
